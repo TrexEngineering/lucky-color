@@ -1,209 +1,209 @@
 import Head from 'next/head'
+import React, {useState, useCallback, useEffect} from 'react';
+import defaultDataset from '../components/data/dataset'
+import {AnswersList, Chats, Loading, ColorDialog} from '../components/index'
 
 export default function Home() {
+  const [answers, setAnswers] = useState([]);            // 回答コンポーネントに表示するデータ
+  const [chats, setChats] = useState([]);                // チャットコンポーネントに表示するデータ
+  const [currentId, setCurrentId] = useState('init');    // 現在の質問ID
+  const [dataset, setDataset] = useState(defaultDataset);            // 質問と回答のデータセット
+  const [open, setOpen] = useState(false);      
+  const [color, setColor] = useState('');  
+  const [text, setText] = useState('');   
+  
+  // 問い合わせフォーム用モーダルを開くCallback関数
+  const handleOpen = useCallback(() => {
+      setOpen(true)
+  },[setOpen]);
+
+  // 問い合わせフォーム用モーダルを閉じるCallback関数
+  const handleClose = useCallback(() => {
+      setOpen(false)
+  },[setOpen]);
+
+  // 新しいチャットを追加するCallback関数
+  const addChats = useCallback((chat) => {
+      setChats(prevChats => {
+          return [...prevChats, chat]
+      })
+  },[setChats]);
+
+  // 次の質問をチャットエリアに表示する関数
+  const displayNextQuestion = (nextQuestionId, nextDataset) => {
+      // 選択された回答と次の質問をチャットに追加
+      addChats({
+          text: nextDataset.question,
+          type: 'question'
+      });
+
+      // 次の回答一覧をセット
+      setAnswers(nextDataset.answers)
+
+      // 現在の質問IDをセット
+      setCurrentId(nextQuestionId)
+  }
+
+  // 回答が選択された時に呼ばれる関数
+  const selectAnswer = useCallback((selectedAnswer, nextQuestionId) => {
+      switch (true) {
+          // カラーが選択された場合
+          //和食
+          case (nextQuestionId === 'green_japan'):
+            setColor('/color/green_japan.png');
+            setText('抹茶');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'pink_japan'):
+            setColor('/color/pink_japan.png');
+            setText('大納言あずき');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'orange_japan'):
+            setColor('/color/orange_japan.png');
+            setText('黒豆きんとんバニラ');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'blue_japan'):
+            setColor('/color/blue_japan.png');
+            setText('北極グマ　ポーラベア');
+            handleOpen();
+            break;
+
+          //洋食
+          case (nextQuestionId === 'green'):
+            setColor('/color/green.png');
+            setText('マスクメロン');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'pink'):
+            setColor('/color/pink.png');
+            setText('べリーベリーストロベリー');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'orange'):
+            setColor('/color/orange.png');
+            setText('オレンジソルベ');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'blue'):
+            setColor('/color/blue.png');
+            setText('クリームソーダ');
+            handleOpen();
+            break;
+
+          //中華
+          case (nextQuestionId === 'green_china'):
+            setColor('/color/green_china.png');
+            setText('ピスタチオアーモンド');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'pink_china'):
+            setColor('/color/pink_china.png');
+            setText('チェリージュビリー');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'orange_china'):
+            setColor('/color/orange_china.png');
+            setText('ジャモカアーモンドファッジ');
+            handleOpen();
+            break;
+
+          case (nextQuestionId === 'blue_china'):
+            setColor('/color/blue_china.png');
+            setText('サンセットサーフィン');
+            handleOpen();
+            break;
+            
+          case (nextQuestionId === 'favourite'):
+            setColor('/color/mint.png');
+            setText('チョコミント\n大好き💛');
+            handleOpen();
+            break;
+
+          // リンクが選択された時
+          case /^https:*/.test(nextQuestionId):
+              const a = document.createElement('a');
+              a.href = nextQuestionId;
+              a.target = '_blank';
+              a.click();
+              break;
+
+          // 選択された回答をchatsに追加
+          default:
+              // 現在のチャット一覧を取得
+              addChats({
+                  text: selectedAnswer,
+                  type: 'answer'
+              })
+
+              setTimeout(() => displayNextQuestion(nextQuestionId, dataset[nextQuestionId]), 750)
+              break;
+      }
+  },[answers]);
+
+  // 最初の質問をチャットエリアに表示する
+  useEffect(() => {
+    displayNextQuestion(currentId, dataset[currentId])
+  }, []);
+
+  // 最新のチャットが見えるように、スクロール位置の頂点をスクロール領域の最下部に設定する
+  useEffect(() => {
+      const scrollArea = document.getElementById('scroll-area');
+      if (scrollArea) {
+          scrollArea.scrollTop = scrollArea.scrollHeight;
+      }
+  });
+
   return (
     <div className="container">
       <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
+        <title>本日のラッキーカラー</title>
+        <meta name="description" content="とある会場に行けないエンジニアの埋め合わせ"/>
+        <meta property="og:type" content="website" />
+        <meta property='og:image' content="/icon.png" />
+        <meta property='og:title' content="株式会社トレックス | 本日のラッキーカラー" />
+        <meta property='og:description' content="とある会場に行けないエンジニアの埋め合わせ" />
+        <meta property='og:url' content="https://lp-recruitment-sales.trex-group.com/"/>
+        <meta name='twitter:site' value="@Trex2003" />
+        <meta name='twitter:card' value="summary" />
+        <meta name= 'twitter:image' value="/icon.png" />
+        <meta name= 'twitter:description' value="とある会場に行けないエンジニアの埋め合わせ" />
+        <link rel="icon" href="/tab.ico" />
       </Head>
 
-      <main>
-        <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
-
-        <div className="grid">
-          <a href="https://nextjs.org/docs" className="card">
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className="card">
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className="card"
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="card"
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+      <section className='c-section'>
+        <div className='c-box'>
+          {(Object.keys(dataset).length === 0) ? (
+              <Loading />
+          ) : (
+              <>
+                  <Chats chats={chats} />
+                  <AnswersList answers={answers} select={selectAnswer}/>
+              </>
+          )}
+          <ColorDialog open={open} handleOpen={handleOpen} handleClose={handleClose} color={color} text={text}/>
         </div>
-      </main>
+      </section>
 
       <footer>
         <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          href="https://www.trex-group.com/"
           target="_blank"
           rel="noopener noreferrer"
         >
           Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel" className="logo" />
+          <img src="/trex.png" alt="Trex" className="logo" />
         </a>
       </footer>
-
-      <style jsx>{`
-        .container {
-          min-height: 100vh;
-          padding: 0 0.5rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        main {
-          padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer {
-          width: 100%;
-          height: 100px;
-          border-top: 1px solid #eaeaea;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer img {
-          margin-left: 0.5rem;
-        }
-
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        .title a {
-          color: #0070f3;
-          text-decoration: none;
-        }
-
-        .title a:hover,
-        .title a:focus,
-        .title a:active {
-          text-decoration: underline;
-        }
-
-        .title {
-          margin: 0;
-          line-height: 1.15;
-          font-size: 4rem;
-        }
-
-        .title,
-        .description {
-          text-align: center;
-        }
-
-        .description {
-          line-height: 1.5;
-          font-size: 1.5rem;
-        }
-
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
-
-        .grid {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-
-          max-width: 800px;
-          margin-top: 3rem;
-        }
-
-        .card {
-          margin: 1rem;
-          flex-basis: 45%;
-          padding: 1.5rem;
-          text-align: left;
-          color: inherit;
-          text-decoration: none;
-          border: 1px solid #eaeaea;
-          border-radius: 10px;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
-
-        .card h3 {
-          margin: 0 0 1rem 0;
-          font-size: 1.5rem;
-        }
-
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
-        }
-
-        .logo {
-          height: 1em;
-        }
-
-        @media (max-width: 600px) {
-          .grid {
-            width: 100%;
-            flex-direction: column;
-          }
-        }
-      `}</style>
-
-      <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
-
-        * {
-          box-sizing: border-box;
-        }
-      `}</style>
     </div>
   )
 }
